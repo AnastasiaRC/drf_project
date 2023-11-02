@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from education.models import Course, Lesson, Payment, Subscription
+from education.services import retrieve_payment, create_payment
 from education.validators import VideoValidator
 from rest_framework.relations import SlugRelatedField
 from users.models import User
@@ -39,8 +40,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     user = SlugRelatedField(slug_field="email", queryset=User.objects.all())
-    course = serializers.SerializerMethodField(read_only=True)
-    lesson = serializers.SerializerMethodField(read_only=True)
+    course = SlugRelatedField(slug_field='title', queryset=Course.objects.all())
+    lesson = SlugRelatedField(slug_field='title', queryset=Lesson.objects.all())
 
     class Meta:
         model = Payment
@@ -65,6 +66,40 @@ class PaymentSerializer(serializers.ModelSerializer):
                 return str(lessons.id)
             except Lesson.DoesNotExist:
                 return "Не найдено"
+
+
+class PaymentListSerializer(serializers.ModelSerializer):
+    payment_status = serializers.SerializerMethodField()
+
+    def get_payment_status(self, instance):
+        return retrieve_payment(instance.payment_id)
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+
+
+class PaymentRetrieveSerializer(serializers.ModelSerializer):
+    payment_status = serializers.SerializerMethodField()
+
+    def get_payment_status(self, instance):
+        return retrieve_payment(instance.payment_id)
+
+    class Meta:
+        model = Payment
+        fields = "__all__"
+
+
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    def create(self, data):
+        data['user'] = self.context['request'].user
+        data['payment_id'] = create_payment(int(data.get('amount')))
+        payment = Payment.objects.create(**data)
+        return payment
+
+    class Meta:
+        model = Payment
+        fields = "__all__"
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
