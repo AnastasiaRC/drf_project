@@ -8,4 +8,5 @@ sqlparse
 django-filter
 djangorestframework
 djangorestframework-simplejwt
+drf-yasg
 coverage

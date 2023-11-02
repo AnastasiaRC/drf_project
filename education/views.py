@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from education.models import Course, Lesson, Payment
 from education.paginators import Pagination
 from education.permissions import IsOwner, IsModerator, IsMember
-from education.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, CourseCreateSerializer, \
-    SubscriptionSerializer
+from education.serializers import CourseSerializer, LessonSerializer, CourseCreateSerializer, \
+    SubscriptionSerializer, PaymentRetrieveSerializer, PaymentCreateSerializer, PaymentListSerializer, PaymentSerializer
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -81,7 +81,7 @@ class LessonDeleteAPIView(DestroyAPIView):
 
 
 class PaymentListAPIView(generics.ListAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentListSerializer
     queryset = Payment.objects.all()
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['date', 'method', 'course', 'lesson']
@@ -90,14 +90,20 @@ class PaymentListAPIView(generics.ListAPIView):
 
 
 class PaymentCreateAPIView(generics.CreateAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentCreateSerializer
     permission_classes = [IsAuthenticated]
 
 
 class PaymentRetrieveAPIView(generics.RetrieveAPIView):
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentRetrieveSerializer
     queryset = Payment.objects.all()
     permission_classes = [IsAuthenticated]
+
+
+class PaymentDeleteView(DestroyAPIView):
+    serializer_class = PaymentSerializer
+    queryset = Payment.objects.all()
+    permission_classes = [IsAuthenticated, IsModerator]
 
 
 class SubscriptionCreateAPIView(CreateAPIView):
