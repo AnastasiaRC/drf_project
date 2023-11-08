@@ -1,13 +1,15 @@
 from rest_framework import viewsets, generics
-from rest_framework.generics import CreateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from education.models import Course, Lesson, Payment
 from education.paginators import Pagination
 from education.permissions import IsOwner, IsModerator, IsMember
 from education.serializers import CourseSerializer, LessonSerializer, CourseCreateSerializer, \
-    SubscriptionSerializer, PaymentRetrieveSerializer, PaymentCreateSerializer, PaymentListSerializer, PaymentSerializer
+    SubscriptionSerializer, PaymentRetrieveSerializer, PaymentCreateSerializer, PaymentListSerializer, \
+    PaymentSerializer
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.generics import CreateAPIView, DestroyAPIView
+from education.tasks import send_mail_update
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -31,6 +33,13 @@ class CourseUpdateViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     permission_classes = [IsOwner | IsModerator]
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        user = self.request.user
+        user_email = user.email
+        course_name = instance.title
+        send_mail_update.delay(user_email, course_name)
 
 
 class CourseRetrieveViewSet(viewsets.ModelViewSet):

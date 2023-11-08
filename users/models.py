@@ -18,7 +18,14 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='почта')
     # is_manager = models.BooleanField(default=False, verbose_name='менеджер')
     role = models.CharField(max_length=10, choices=UserRoles.choices, default=UserRoles.MEMBER, verbose_name='Role', )
+    is_active = models.BooleanField(default=True, verbose_name='aктивность пользователя')
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
+    def str(self):
+        return f'{self.email}'
+
+    class Meta:
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'

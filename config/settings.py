@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
+from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_yasg',
     'corsheaders',
+    'django_celery_beat',
 
     'education',
     'users',
@@ -178,3 +180,25 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = False
 
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+
+# URL-адрес брокера сообщений
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # Redis на порту 6379
+
+# URL-адрес брокера результатов, также Redis
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
+
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = "UTC"
+
+CELERY_BEAT_SCHEDULE = {
+    'deactivate-users': {
+        'task': 'users.tasks.check_last_login',
+        'schedule': timedelta(minutes=1),
+    },
+    'send_mail_update': {
+        'task': 'education.tasks.send_mail_update',
+        'schedule': timedelta(minutes=1),  # Расписание запуска задачи
+        'args': ('user_email', 'course_name'),  # Добавление обязательного позиционного аргумента
+    },
+}
+

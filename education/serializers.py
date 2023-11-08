@@ -28,6 +28,7 @@ class CourseSerializer(serializers.ModelSerializer):
         return instance.lesson_set.all().count()
 
     def get_is_subscribed(self, instance):
+
         if Subscription.objects.filter(course=instance).count() == 0:
             return False
         else:
