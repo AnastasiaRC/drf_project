@@ -7,6 +7,7 @@ class Course(models.Model):
     preview = models.ImageField(upload_to='media/courses/', verbose_name='картинка', **NULLABLE)
     description = models.TextField(verbose_name='описание')
     author = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name='автор', **NULLABLE)
+    updated = models.DateTimeField(verbose_name='Дата обновления', **NULLABLE)
 
     def __str__(self):
         return self.title
